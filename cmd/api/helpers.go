@@ -7,9 +7,11 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/Yusufdot101/greenlight/internal/validator"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -108,12 +110,51 @@ func (app *application) readJSON(
 	}
 
 	// call the Decode() using a pointer to an empty anonymous struct.
-	// if the request body only contained one JSON value this will return an
+	// if the request body only contained one JSON s this will return an
 	// io.EOF error. so anything else means we know there is additional data
 	// in the request body
 	err = decoder.Decode(&struct{}{})
 	if err != io.EOF {
-		return errors.New("body must only contain a single JSON value")
+		return errors.New("body must only contain a single JSON s")
 	}
 	return nil
+}
+
+func (app *application) readString(
+	qs url.Values, key string, defaultValue string,
+) string {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+	return s
+}
+
+func (app *application) readInt(
+	qs url.Values, key string, defaultValue int, v *validator.Validator,
+) int {
+	s := qs.Get(key)
+
+	if s == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+		return defaultValue
+	}
+
+	return i
+}
+
+func (app *application) readCSV(
+	qs url.Values, key string, defaultValue []string,
+) []string {
+	s := qs.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+	return strings.Split(s, ",")
 }

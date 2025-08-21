@@ -11,6 +11,8 @@ var ErrInvalidRuntimeFormat = errors.New("invalid runtime format")
 
 type Runtime int32
 
+// MarshalJSON is how the varible will be encoded to JSON, we used custom
+// logic here
 func (runtime Runtime) MarshalJSON() ([]byte, error) {
 	jsonValue := fmt.Sprintf("%d mins", runtime)
 
@@ -19,6 +21,8 @@ func (runtime Runtime) MarshalJSON() ([]byte, error) {
 	return []byte(quotedJSONValue), nil
 }
 
+// UnmarshalJSON is how the varible will be decoded from JSON to Golang types
+// we used custom logic here
 func (runtime *Runtime) UnmarshalJSON(jsonValue []byte) error {
 	// we expect the json vaule will be a string in the format:
 	// "<runtime> mins". we use the Unquote() to remove the quotes from the value

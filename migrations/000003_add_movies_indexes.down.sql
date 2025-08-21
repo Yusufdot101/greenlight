@@ -1,0 +1,7 @@
+DROP INDEX IF EXISTS movies_title_idx;
+
+DROP INDEX IF EXISTS movies_genres_idx;
+
+DROP INDEX IF EXISTS movies_year_idx;
+
+DROP INDEX IF EXISTS movies_runtime_idx;

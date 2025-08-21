@@ -19,7 +19,7 @@ func (app *application) showMovieHandler(
 		return
 	}
 
-	movie, err := app.models.Movies.Get(id)
+	movie, err := app.models.Movies.GetOneMovie(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -31,6 +31,66 @@ func (app *application) showMovieHandler(
 	}
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"movie": movie}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+}
+
+// showMoviesHandler shows multiple movies
+func (app *application) listMoviesHandler(
+	w http.ResponseWriter, r *http.Request,
+) {
+	var input struct {
+		Title   string
+		Year    int
+		Runtime int
+		Genres  []string
+		data.Filters
+	}
+
+	v := validator.New()
+	qs := r.URL.Query()
+
+	input.Title = app.readString(qs, "title", "")
+	input.Genres = app.readCSV(qs, "genres", []string{})
+	input.Year = app.readInt(qs, "year", -1, v)
+	input.Runtime = app.readInt(qs, "runtime", -1, v)
+
+	input.Page = app.readInt(qs, "page", 1, v)
+	input.PageSize = app.readInt(qs, "page_size", 20, v)
+
+	input.Sort = app.readString(qs, "sort", "id")
+
+	// negative means descending order
+	input.SortSafeList = []string{
+		"id", "title", "year", "runtime", "-id", "-title", "-year", "-runtime",
+	}
+
+	if data.ValidateFilters(v, input.Filters); !v.Vaild() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	movies, metadata, err := app.models.Movies.GetAll(
+		input.Title, input.Year, input.Runtime, input.Genres, input.Filters,
+	)
+
+	if err != nil {
+		app.logger.Fatal(err)
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(
+		w, http.StatusOK, envelope{"movies": movies, "metadata": metadata}, nil,
+	)
+
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -123,7 +183,7 @@ func (app *application) updateMovieHandler(
 	}
 
 	// verify the movie exists
-	movie, err := app.models.Movies.Get(id)
+	movie, err := app.models.Movies.GetOneMovie(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -136,10 +196,10 @@ func (app *application) updateMovieHandler(
 
 	// the fields that could be in the requst body
 	var input struct {
-		Title   string       `json:"title"`
-		Year    int32        `json:"year"`
-		Runtime data.Runtime `json:"runtime"`
-		Genres  []string     `json:"genres"`
+		Title   *string       `json:"title"`
+		Year    *int32        `json:"year"`
+		Runtime *data.Runtime `json:"runtime"`
+		Genres  []string      `json:"genres"`
 	}
 	err = app.readJSON(w, r, &input)
 	if err != nil {
@@ -147,10 +207,19 @@ func (app *application) updateMovieHandler(
 		return
 	}
 
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+
+	}
 
 	v := validator.New()
 
@@ -161,7 +230,12 @@ func (app *application) updateMovieHandler(
 
 	err = app.models.Movies.Update(movie)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editErrorResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

@@ -17,6 +17,9 @@ func (app *application) routes() *httprouter.Router {
 
 	// show specific movie
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
+	// show specific movie
+	router.HandlerFunc(http.MethodGet, "/v1/movies", app.listMoviesHandler)
+
 	// create a new movie
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 	// update the details of a specific movie
