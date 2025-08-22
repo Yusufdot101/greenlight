@@ -13,6 +13,7 @@ import (
 func (app *application) showMovieHandler(
 	w http.ResponseWriter, r *http.Request,
 ) {
+	panic("hello")
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
@@ -77,7 +78,6 @@ func (app *application) listMoviesHandler(
 	)
 
 	if err != nil {
-		app.logger.Fatal(err)
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
 			app.notFoundResponse(w, r)
