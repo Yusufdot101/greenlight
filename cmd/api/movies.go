@@ -13,7 +13,6 @@ import (
 func (app *application) showMovieHandler(
 	w http.ResponseWriter, r *http.Request,
 ) {
-	panic("hello")
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.notFoundResponse(w, r)
