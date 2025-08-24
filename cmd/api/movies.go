@@ -96,8 +96,8 @@ func (app *application) listMoviesHandler(
 
 }
 
-// deleteMovieHandler deletes a specific movie by id. if not found it will return
-// error
+// deleteMovieHandler deletes a specific movie by id. if not found it will
+// return error
 func (app *application) deleteMovieHandler(
 	w http.ResponseWriter, r *http.Request,
 ) {
@@ -130,8 +130,8 @@ func (app *application) deleteMovieHandler(
 
 }
 
-// createMovieHandler creates a new movie based on the client requst and performs
-// validation on it. returns error if validation fails
+// createMovieHandler creates a new movie based on the client requst and
+// performs validation on it. returns error if validation fails
 func (app *application) createMovieHandler(
 	w http.ResponseWriter, r *http.Request,
 ) {

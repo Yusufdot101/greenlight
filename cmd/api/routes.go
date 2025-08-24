@@ -13,7 +13,9 @@ func (app *application) routes() http.Handler {
 	router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// show application information
-	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheckHandler)
+	router.HandlerFunc(
+		http.MethodGet, "/v1/healthcheck", app.healthcheckHandler,
+	)
 
 	// show specific movie
 	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.showMovieHandler)
@@ -23,9 +25,16 @@ func (app *application) routes() http.Handler {
 	// create a new movie
 	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovieHandler)
 	// update the details of a specific movie
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler)
+	router.HandlerFunc(
+		http.MethodPatch, "/v1/movies/:id", app.updateMovieHandler,
+	)
 	// delete a specific movie
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler)
+	router.HandlerFunc(
+		http.MethodDelete, "/v1/movies/:id", app.deleteMovieHandler,
+	)
+
+	// register new user
+	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 
 	// wrap the router with the panic recovery middleware
 	return app.recoverPanic(app.rateLimit(router))

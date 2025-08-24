@@ -57,8 +57,8 @@ func ValidateMovie(v *validator.Validator, movie *Movie) {
 	)
 }
 
-// MovieModel is the model or layer where all movie related operations will occur
-// like insert movie, get, update and delete movie
+// MovieModel is the model or layer where all movie related operations will
+// occur like insert movie, get, update and delete movie
 type MovieModel struct {
 	DB *sql.DB
 }
@@ -132,10 +132,14 @@ func (model MovieModel) GetOneMovie(id int64) (*Movie, error) {
 	return &movie, nil
 }
 
-func (model MovieModel) GetAll(title string, year int, runtime int, genres []string, filter Filters) ([]*Movie, Metadata, error) {
+func (model MovieModel) GetAll(
+	title string, year int, runtime int, genres []string, filter Filters,
+) ([]*Movie, Metadata, error) {
 	queryStatement := fmt.Sprintf(`
 	SELECT COUNT(*) OVER(), * FROM movies
-	WHERE (to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = '')
+	WHERE (
+		to_tsvector('simple', title) @@ plainto_tsquery('simple', $1) OR $1 = ''
+	)
 	AND (year = $2 OR $2 = -1)
 	AND (runtime = $3 OR $3 = -1)
 	AND (genres @> $4 OR $4 = '{}')
@@ -201,7 +205,8 @@ func (model MovieModel) GetAll(title string, year int, runtime int, genres []str
 func (model MovieModel) Update(movie *Movie) error {
 	queryStatement := `
 		UPDATE movies
-		SET title = $1, year = $2, runtime = $3, genres = $4, version = version + 1
+		SET title = $1, year = $2, runtime = $3, genres = $4, 
+			version = version + 1
 		WHERE id = $5 AND version = $6
 		RETURNING version
 	`
@@ -218,15 +223,17 @@ func (model MovieModel) Update(movie *Movie) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := model.DB.QueryRowContext(ctx, queryStatement, args...).Scan(&movie.ID)
+	err := model.DB.QueryRowContext(
+		ctx, queryStatement, args...,
+	).Scan(&movie.ID)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
 			// we don't return ErrRecordNotFound as the record exists because
-			// we called Get() with the id before calling this function, so it must
-			// mean the version changed, which means someone else updated the movie
-			// at the exact same time and the version in the database is not the one
-			// we have
+			// we called Get() with the id before calling this function, so it
+			// must mean the version changed, which means someone else updated
+			// the movie at the exact same time and the version in the database
+			// is not the one we have
 			return ErrEditConflict
 		default:
 			return err
@@ -258,8 +265,8 @@ func (model MovieModel) Delete(id int64) error {
 		return err
 	}
 
-	// DELETE doensn't return sql.ErrNoRows when there are no records, the affected
-	// rows will be zero
+	// DELETE doensn't return sql.ErrNoRows when there are no records, the
+	//affected rows will be zero
 	if rowsEffected != 0 {
 		return ErrRecordNotFound
 	}

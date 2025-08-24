@@ -4,10 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"flag"
-	"fmt"
-	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/Yusufdot101/greenlight/internal/data"
@@ -52,13 +49,16 @@ func main() {
 		&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN",
 	)
 	flag.IntVar(
-		&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections",
+		&cfg.db.maxOpenConns, "db-max-open-conns", 25,
+		"PostgreSQL max open connections",
 	)
 	flag.IntVar(
-		&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections",
+		&cfg.db.maxIdleConns, "db-max-idle-conns", 25,
+		"PostgreSQL max idle connections",
 	)
 	flag.StringVar(
-		&cfg.db.connMaxIdleTime, "db-max-idle-time", "15m", "PostgreSQL max idle time",
+		&cfg.db.connMaxIdleTime, "db-max-idle-time", "15m",
+		"PostgreSQL max idle time",
 	)
 
 	flag.Float64Var(
@@ -81,7 +81,7 @@ func main() {
 		logger.PrintFatal(err, nil)
 	}
 
-	// defer a call to to db.Close() so that the connection pool is close before
+	// defer a call to to db.Close() so that the connection pool is closed before
 	// the main() function exists
 	defer db.Close()
 	logger.PrintInfo("database connection pool established", nil)
@@ -92,22 +92,9 @@ func main() {
 		models: data.NewModels(db),
 	}
 
-	srv := http.Server{
-		Addr:         fmt.Sprintf(":%d", app.config.port),
-		Handler:      app.routes(),
-		IdleTimeout:  1 * time.Minute,
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 30 * time.Second,
+	if err = app.serve(); err != nil {
+		logger.PrintFatal(err, nil)
 	}
-	logger.PrintInfo(
-		"starting server",
-		map[string]string{
-			"addr": strconv.Itoa(app.config.port),
-			"env":  app.config.env,
-		},
-	)
-	err = srv.ListenAndServe()
-	logger.PrintFatal(err, nil)
 }
 
 func openDB(cfg config) (*sql.DB, error) {

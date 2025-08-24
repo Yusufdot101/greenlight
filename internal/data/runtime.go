@@ -25,13 +25,14 @@ func (runtime Runtime) MarshalJSON() ([]byte, error) {
 // we used custom logic here
 func (runtime *Runtime) UnmarshalJSON(jsonValue []byte) error {
 	// we expect the json vaule will be a string in the format:
-	// "<runtime> mins". we use the Unquote() to remove the quotes from the value
+	// "<runtime> mins". we use the Unquote() to remove quotes from the value
 	unquotedJSONValue, err := strconv.Unquote(string(jsonValue))
 	if err != nil {
 		return ErrInvalidRuntimeFormat
 	}
 
-	// split the value using the " ", space, so that it becomes , [<runtime>, mins]
+	// split the value using the " ", space, so that it becomes;
+	// [<runtime>, mins]
 	parts := strings.Split(unquotedJSONValue, " ")
 	if len(parts) != 2 || parts[1] != "mins" {
 		return ErrInvalidRuntimeFormat

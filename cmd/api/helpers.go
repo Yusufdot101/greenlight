@@ -75,6 +75,8 @@ func (app *application) readJSON(
 		case errors.Is(err, io.ErrUnexpectedEOF):
 			return errors.New("body contains badly-formed JSON")
 
+		// if the type expected by the dst is not the same as the one in the
+		// body, like integer instead of string
 		case errors.As(err, &unmarshalTypeError):
 			if unmarshalTypeError.Field != "" {
 				return fmt.Errorf(
@@ -90,6 +92,8 @@ func (app *application) readJSON(
 		case errors.Is(err, io.EOF):
 			return errors.New("body must not be empty")
 
+		// this an error caused by server and should not happen in normal
+		// operations
 		case errors.As(err, &invalidUnmarshalError):
 			panic(err)
 

@@ -12,8 +12,8 @@ import (
 // Level type to represent the level of severity
 type Level int8
 
-// constants which represent different levels of severity. we use iota as shortcut
-// to make successive values, 0, lowest -> 3
+// constants which represent different levels of severity. we use iota as
+// shortcut to make successive values, 0, lowest -> 3
 const (
 	LevelInfo Level = iota
 	LevelError

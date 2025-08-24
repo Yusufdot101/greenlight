@@ -63,11 +63,14 @@ func calculateMetadata(totalRecords, page, pageSize int) Metadata {
 	if totalRecords == 0 {
 		return Metadata{}
 	}
+
+	lastPage := int(math.Ceil(float64(totalRecords) / float64(pageSize)))
+
 	return Metadata{
 		CurrentPage:   page,
 		PageSize:      pageSize,
 		FirstPage:     1,
-		LastPage:      int(math.Ceil(float64(totalRecords) / float64(pageSize))),
+		LastPage:      lastPage,
 		TotatlRecorld: totalRecords,
 	}
 }
