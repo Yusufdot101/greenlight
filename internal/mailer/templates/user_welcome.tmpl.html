@@ -1,0 +1,30 @@
+{{define "subject"}}Welcome to Greenlight!{{end}}
+
+{{define "plainBody"}}
+Hi, {{.Name}}
+
+Thanks for signing up for a Greenlight account. We're are excited to have you on board!
+
+For future refrecences, your user ID number is {{.ID}}.
+
+Thanks,
+
+-The Greenlight Team
+{{end}}
+
+{{define "htmlBody"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width">
+    <meta http-equiv="Content-Type" content="text/hmtl"; charset="UTF-8">
+</head>
+<body>
+        <p>Hi, {{.Name}}</p>
+    <p>Thanks for signing up for a Greenlight account. We're are excited to have you on board!</p>
+    <p>For future refrecences, your user ID number is {{.ID}}.</p>
+    <p>Thanks,</p>
+    <p>-The Greenlight Team</p>
+</body>
+</html>
+{{end}}

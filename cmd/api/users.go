@@ -35,24 +35,32 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 
 	v := validator.New()
 
-	err = app.models.Users.Insert(user)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrDuplicateEmail):
-			v.AddError("email", "a user with this email address already exists")
-		default:
-			app.serverErrorResponse(w, r, err)
-			return
-		}
-	}
-
 	if data.ValidateUser(v, user); !v.Vaild() {
 		app.failedValidationResponse(w, r, v.Errors)
 		return
 	}
 
+	err = app.models.Users.Insert(user)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrDuplicateEmail):
+			v.AddError("email", "a user with this email address already exists")
+			app.failedValidationResponse(w, r, v.Errors)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	app.background(func() {
+		err = app.mailer.Send(user.Email, "user_welcome.tmpl.html", user)
+		if err != nil {
+			app.logger.PrintError(err, nil)
+		}
+	})
+
 	err = app.writeJSON(
-		w, http.StatusCreated,
+		w, http.StatusAccepted,
 		envelope{
 			"message": "user registered successfully",
 			"user":    user,

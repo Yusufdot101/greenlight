@@ -48,7 +48,6 @@ func (app *application) writeJSON(
 func (app *application) readJSON(
 	w http.ResponseWriter, r *http.Request, dst any,
 ) error {
-
 	// limit the size of the rquest to 1MB using http.MaxBytesReader
 	maxBytes := 1_048_576
 	r.Body = http.MaxBytesReader(w, r.Body, int64(maxBytes))
@@ -161,4 +160,19 @@ func (app *application) readCSV(
 		return defaultValue
 	}
 	return strings.Split(s, ",")
+}
+
+func (app *application) background(fn func()) {
+	app.wg.Add(1)
+	go func() {
+		defer app.wg.Done()
+
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.PrintError(fmt.Errorf("%s", err), nil)
+			}
+		}()
+
+		fn()
+	}()
 }
