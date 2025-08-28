@@ -13,6 +13,12 @@ import (
 
 var ErrDuplicateEmail = errors.New("duplicate email")
 
+var AnonymousUser = &User{}
+
+func (user *User) IsAnonymous() bool {
+	return user == AnonymousUser
+}
+
 type User struct {
 	ID        int64     `json:"id"`
 	CreatedAt time.Time `json:"created_at"`

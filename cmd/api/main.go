@@ -76,6 +76,9 @@ func main() {
 	)
 
 	minLevel := flag.Int("logger-min-levl", 0, "logger minimum severity level to log")
+
+	flag.Parse()
+
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.Level(*minLevel))
 
 	db, err := openDB(cfg)

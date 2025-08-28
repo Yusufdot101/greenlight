@@ -14,19 +14,34 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/v1/healthcheck", app.healthcheck)
 
-	router.HandlerFunc(http.MethodGet, "/v1/movies", app.ListMovies)
+	router.HandlerFunc(
+		http.MethodGet, "/v1/movies", app.requirePermission("movies:read", app.ListMovies),
+	)
 
-	router.HandlerFunc(http.MethodPost, "/v1/movies", app.createMovie)
+	router.HandlerFunc(
+		http.MethodGet, "/v1/movies/:id", app.requirePermission("movies:read", app.GetMovieByID),
+	)
 
-	router.HandlerFunc(http.MethodGet, "/v1/movies/:id", app.GetMovieByID)
+	router.HandlerFunc(
+		http.MethodPost, "/v1/movies", app.requirePermission("movies:write", app.createMovie),
+	)
 
-	router.HandlerFunc(http.MethodDelete, "/v1/movies/:id", app.DeleteMovieByID)
+	router.HandlerFunc(
+		http.MethodDelete, "/v1/movies/:id",
+		app.requirePermission("movies:write", app.DeleteMovieByID),
+	)
 
-	router.HandlerFunc(http.MethodPatch, "/v1/movies/:id", app.updateMovie)
+	router.HandlerFunc(
+		http.MethodPatch, "/v1/movies/:id", app.requirePermission("movies:write", app.updateMovie),
+	)
 
 	router.HandlerFunc(http.MethodPost, "/v1/users", app.registerUserHandler)
 
 	router.HandlerFunc(http.MethodPut, "/v1/users/activated", app.activateUserHandler)
 
-	return app.recoverPanic(app.rateLimiter(router))
+	router.HandlerFunc(
+		http.MethodPut, "/v1/users/authentication", app.createAuthenticationTokenHandler,
+	)
+
+	return app.recoverPanic(app.rateLimiter(app.authenticate(router)))
 }
