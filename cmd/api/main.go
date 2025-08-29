@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"flag"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -36,6 +37,9 @@ type config struct {
 		username string
 		password string
 		sender   string
+	}
+	cors struct {
+		trustedOrigins []string
 	}
 }
 
@@ -73,6 +77,13 @@ func main() {
 	flag.StringVar(
 		&cfg.smtp.sender, "smtp-sender", "Greenlight <noreply@greenlight.ym.net>",
 		"SMTP sender",
+	)
+
+	flag.Func("cors-trusted-origins", "Trusted CORS origin (space separated)",
+		func(val string) error {
+			cfg.cors.trustedOrigins = strings.Fields(val)
+			return nil
+		},
 	)
 
 	minLevel := flag.Int("logger-min-levl", 0, "logger minimum severity level to log")
