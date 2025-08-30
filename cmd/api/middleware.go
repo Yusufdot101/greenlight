@@ -4,7 +4,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"slices"
 	"strconv"
@@ -15,6 +14,7 @@ import (
 	"github.com/Yusufdot101/greenlight/internal/data"
 	"github.com/Yusufdot101/greenlight/internal/validator"
 	"github.com/felixge/httpsnoop"
+	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 )
 
@@ -60,11 +60,7 @@ func (app *application) rateLimiter(next http.Handler) http.Handler {
 			return
 		}
 
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			app.serverError(w, r, err)
-			return
-		}
+		ip := realip.FromRequest(r)
 
 		mu.Lock()
 		if _, exists := clients[ip]; !exists {

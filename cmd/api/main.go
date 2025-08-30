@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"expvar"
 	"flag"
+	"fmt"
 	"os"
 	"runtime"
 	"strings"
@@ -18,6 +19,8 @@ import (
 )
 
 const version = "1.0.0"
+
+var buildTime string
 
 type config struct {
 	port int
@@ -55,10 +58,10 @@ type application struct {
 
 func main() {
 	var cfg config
-	flag.IntVar(&cfg.port, "addr", 4000, "API server port")
+	flag.IntVar(&cfg.port, "port", 4000, "API server port")
 	flag.StringVar(&cfg.env, "env", "development", "environment (development|staging|production)")
 
-	flag.StringVar(&cfg.db.dsn, "db-dsn", os.Getenv("GREENLIGHT_DB_DSN"), "PostgreSQL DSN")
+	flag.StringVar(&cfg.db.dsn, "db-dsn", "", "PostgreSQL DSN")
 	flag.IntVar(&cfg.db.maxOpenConns, "db-max-open-conns", 25, "PostgreSQL max open connections")
 	flag.IntVar(&cfg.db.maxIdleConns, "db-max-idle-conns", 25, "PostgreSQL max idle connections")
 	flag.StringVar(
@@ -87,10 +90,16 @@ func main() {
 			return nil
 		},
 	)
-
+	displayVersion := flag.Bool("version", false, "Dispaly version and exit")
 	minLevel := flag.Int("logger-min-levl", 0, "logger minimum severity level to log")
 
 	flag.Parse()
+
+	if *displayVersion {
+		fmt.Printf("Version:\t%s\n", version)
+		fmt.Printf("Build Time:\t%s\n", buildTime)
+		os.Exit(0)
+	}
 
 	logger := jsonlog.NewLogger(os.Stdout, jsonlog.Level(*minLevel))
 
